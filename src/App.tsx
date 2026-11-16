@@ -12,25 +12,23 @@ import type { User } from "./types/user";
 import type { Post } from "./types/post";
 
 function App() {
-  // Usuarios
+  // Estado de usuarios y búsqueda
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [usersError, setUsersError] = useState<string | null>(null);
-
-  // Búsqueda
   const [search, setSearch] = useState("");
 
-  // Usuario seleccionado
+  // Usuario seleccionado y publicaciones
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
-  // Publicaciones
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [postsError, setPostsError] = useState<string | null>(null);
 
+  // Publicaciones locales y errores de creación
   const [createError, setCreateError] = useState<string | null>(null);
   const [localPosts, setLocalPosts] = useState<Post[]>([]);
 
+  // Envía la publicación y la conserva localmente, ya que la API no persiste datos.
   async function handleCreatePost(
     title: string,
     body: string,
@@ -68,7 +66,7 @@ function App() {
     }
   }
 
-  // Obtener usuarios
+  // Carga los usuarios al iniciar la aplicación.
   useEffect(() => {
     let active = true;
 
@@ -95,12 +93,13 @@ function App() {
 
     void loadUsers();
 
+    // Evita actualizar el estado después de desmontar el componente.
     return () => {
       active = false;
     };
   }, []);
 
-  // Obtener publicaciones cuando cambia el usuario
+  // Consulta las publicaciones cada vez que cambia el usuario seleccionado.
   useEffect(() => {
     if (!selectedUser) {
       return;
@@ -132,15 +131,18 @@ function App() {
 
     void loadPosts();
 
+    // Descarta respuestas de peticiones anteriores.
     return () => {
       active = false;
     };
   }, [selectedUser]);
 
+  // Filtra por nombre sin modificar la lista original.
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
+  // Combina las publicaciones locales con las obtenidas de la API.
   const visiblePosts = selectedUser
     ? [
         ...localPosts.filter((post) => post.userId === selectedUser.id),
@@ -156,6 +158,7 @@ function App() {
       </header>
 
       <div className="app-layout">
+        {/* Listado y búsqueda de usuarios */}
         <section>
           <h2>Usuarios</h2>
 
@@ -204,6 +207,7 @@ function App() {
           )}
         </section>
 
+        {/* Publicaciones y formulario del usuario seleccionado */}
         <section>
           <h2>Publicaciones</h2>
 
