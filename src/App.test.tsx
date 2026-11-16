@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 
 import App from "./App";
 import { getUsers } from "./api/users";
-import { getPostsByUser } from "./api/posts";
+import { createPost, getPostsByUser } from "./api/posts";
 
 vi.mock("./api/users", () => ({
   getUsers: vi.fn(),
@@ -105,5 +105,55 @@ describe("App", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "No se pudieron cargar las publicaciones",
     );
+  });
+
+  it("crea una publicación y la muestra en la lista", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(createPost).mockResolvedValue({
+      id: 101,
+      userId: 1,
+      title: "Aprendiendo React",
+      body: "Mi primera publicación de prueba",
+    });
+
+    render(<App />);
+
+    // Esperar a que aparezcan los usuarios
+    await screen.findByText("Leanne Graham");
+
+    // Seleccionar un usuario
+    await user.click(
+      screen.getByRole("button", {
+        name: /Leanne Graham/i,
+      }),
+    );
+
+    // Esperar a que termine la carga de publicaciones
+    await screen.findByText("Este usuario no tiene publicaciones.");
+
+    // Rellenar el formulario
+    await user.type(screen.getByLabelText(/título/i), "Aprendiendo React");
+
+    await user.type(
+      screen.getByLabelText(/contenido/i),
+      "Mi primera publicación de prueba",
+    );
+
+    // Enviar
+    await user.click(
+      screen.getByRole("button", {
+        name: /crear publicación/i,
+      }),
+    );
+
+    // Comprobar que aparece en la interfaz
+    expect(await screen.findByText("Aprendiendo React")).toBeInTheDocument();
+
+    expect(createPost).toHaveBeenCalledWith({
+      userId: 1,
+      title: "Aprendiendo React",
+      body: "Mi primera publicación de prueba",
+    });
   });
 });
