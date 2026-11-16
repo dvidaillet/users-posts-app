@@ -65,7 +65,7 @@ function App() {
             <label htmlFor="user-search">Buscar usuarios</label>
 
             <input
-              id="user-search"
+              id="user-search" 
               type="search"
               placeholder="Buscar por nombre..."
               value={search}
