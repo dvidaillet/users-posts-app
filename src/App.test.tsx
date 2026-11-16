@@ -41,48 +41,69 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(
-      await screen.findByText("Leanne Graham")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Leanne Graham")).toBeInTheDocument();
 
-    await user.type(
-      screen.getByRole("searchbox"),
-      "Ervin"
-    );
+    await user.type(screen.getByRole("searchbox"), "Ervin");
 
-    expect(
-      screen.getByText("Ervin Howell")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Ervin Howell")).toBeInTheDocument();
 
-    expect(
-      screen.queryByText("Leanne Graham")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Leanne Graham")).not.toBeInTheDocument();
   });
 
   it("muestra las publicaciones del usuario seleccionado", async () => {
-  const user = userEvent.setup();
+    const user = userEvent.setup();
 
-  vi.mocked(getPostsByUser).mockResolvedValue([
-    {
-      id: 101,
-      userId: 1,
-      title: "Publicación de prueba",
-      body: "Contenido de la publicación",
-    },
-  ]);
+    vi.mocked(getPostsByUser).mockResolvedValue([
+      {
+        id: 101,
+        userId: 1,
+        title: "Publicación de prueba",
+        body: "Contenido de la publicación",
+      },
+    ]);
 
-  render(<App />);
+    render(<App />);
 
-  await user.click(
-    await screen.findByRole("button", {
-      name: /Leanne Graham/i,
-    })
-  );
+    await user.click(
+      await screen.findByRole("button", {
+        name: /Leanne Graham/i,
+      }),
+    );
 
-  expect(
-    await screen.findByText("Publicación de prueba")
-  ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Publicación de prueba"),
+    ).toBeInTheDocument();
 
-  expect(getPostsByUser).toHaveBeenCalledWith(1);
-});
+    expect(getPostsByUser).toHaveBeenCalledWith(1);
+  });
+
+  it("muestra un error si falla la carga de usuarios", async () => {
+    vi.mocked(getUsers).mockRejectedValue(new Error("Error de conexión"));
+
+    render(<App />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No se pudieron cargar los usuarios",
+    );
+  });
+
+  it("muestra un error si fallan las publicaciones", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(getPostsByUser).mockRejectedValue(
+      new Error("Error al obtener publicaciones"),
+    );
+
+    render(<App />);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: /Leanne Graham/i,
+      }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No se pudieron cargar las publicaciones",
+    );
+  });
 });
