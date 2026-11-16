@@ -168,3 +168,80 @@ header p {
     gap: 40px;
   }
 }
+
+.post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+  margin: 24px 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.post-form h3 {
+  margin: 0;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
+}
+
+.field-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.post-form button {
+  align-self: flex-start;
+  padding: 12px 20px;
+  color: white;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.post-form button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.post-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .post-form {
+    padding: 18px;
+  }
+
+  .post-form button {
+    width: 100%;
+  }
+}

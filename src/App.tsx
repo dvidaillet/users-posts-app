@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { getUsers } from "./api/users";
+import { createPost } from "./api/posts";
 import { getPostsByUser } from "./api/posts";
 
 import { UserCard } from "./components/UserCard";
 import { PostList } from "./components/PostList";
+import { PostForm } from "./components/PostForm";
 
 import type { User } from "./types/user";
 import type { Post } from "./types/post";
@@ -25,6 +27,46 @@ function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [postsError, setPostsError] = useState<string | null>(null);
+
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [localPosts, setLocalPosts] = useState<Post[]>([]);
+
+  async function handleCreatePost(
+    title: string,
+    body: string,
+  ): Promise<boolean> {
+    if (!selectedUser) {
+      return false;
+    }
+
+    const userId = selectedUser.id;
+
+    setCreateError(null);
+
+    try {
+      const newPost = await createPost({
+        userId,
+        title,
+        body,
+      });
+
+      setLocalPosts((currentPosts) => [
+        {
+          ...newPost,
+          id: -Date.now(),
+          userId,
+          title,
+          body,
+        },
+        ...currentPosts,
+      ]);
+
+      return true;
+    } catch {
+      setCreateError("No se pudo crear la publicación. Inténtalo nuevamente.");
+      return false;
+    }
+  }
 
   // Obtener usuarios
   useEffect(() => {
@@ -96,8 +138,15 @@ function App() {
   }, [selectedUser]);
 
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(search.trim().toLowerCase())
+    user.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
+
+  const visiblePosts = selectedUser
+    ? [
+        ...localPosts.filter((post) => post.userId === selectedUser.id),
+        ...posts,
+      ]
+    : [];
 
   return (
     <main className="container">
@@ -111,9 +160,7 @@ function App() {
           <h2>Usuarios</h2>
 
           <div className="search-section">
-            <label htmlFor="user-search">
-              Buscar usuarios
-            </label>
+            <label htmlFor="user-search">Buscar usuarios</label>
 
             <input
               id="user-search"
@@ -124,9 +171,7 @@ function App() {
             />
           </div>
 
-          {loadingUsers && (
-            <p role="status">Cargando usuarios...</p>
-          )}
+          {loadingUsers && <p role="status">Cargando usuarios...</p>}
 
           {usersError && (
             <p role="alert" className="error">
@@ -144,15 +189,16 @@ function App() {
                     key={user.id}
                     user={user}
                     isSelected={selectedUser?.id === user.id}
-                    onSelect={setSelectedUser}
+                    onSelect={(user) => {
+                      setCreateError(null);
+                      setSelectedUser(user);
+                    }}
                   />
                 ))}
               </div>
 
               {filteredUsers.length === 0 && (
-                <p className="empty-state">
-                  No se encontraron usuarios.
-                </p>
+                <p className="empty-state">No se encontraron usuarios.</p>
               )}
             </>
           )}
@@ -171,8 +217,16 @@ function App() {
                 Publicaciones de {selectedUser.name}
               </p>
 
+              <PostForm key={selectedUser.id} onSubmit={handleCreatePost} />
+
+              {createError && (
+                <p role="alert" className="error">
+                  {createError}
+                </p>
+              )}
+
               <PostList
-                posts={posts}
+                posts={visiblePosts}
                 loading={loadingPosts}
                 error={postsError}
               />
